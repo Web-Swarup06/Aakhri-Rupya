@@ -1,15 +1,22 @@
-# 🎮 Pocket Survival (INR Edition)
+⚔️ Pocket Survival: Finance Edition
+Pocket Survival is a gamified personal finance tracker built with Streamlit and Supabase. Treat your monthly budget like a health bar (HP) and log expenses as "Damage" to your wallet integrity.
 
-A gamified finance tracker built with **Python (Flask)** and **SQLAlchemy**. 
-Designed for students to treat their monthly pocket money as "Health Points" (HP).
+🎮 Game Features
+Health Bar HUD: Real-time visualization of your remaining budget.
 
-## 🚀 Features
-- **Health Bar:** Visualized budget tracking using a dynamic progress bar.
-- **Daily Spending Shield:** Calculates exactly how much you can spend per day to survive 30 days.
-- **Battle Logs:** Permanent storage of all expenses using SQLite.
-- **Critical Alerts:** Browser notifications when your daily budget drops below ₹150.
+Global Persistence: Data is stored in a Supabase (PostgreSQL) cloud database, accessible from any device.
 
-## 🛠️ Installation
-1. Clone the repo: `git clone <your-repo-link>`
-2. Install tools: `pip install -r requirements.txt`
-3. Run: `python app.py`
+Overspending Alert: If HP hits zero, the app tracks "Critical Damage" (overspending) without showing negative balances.
+
+Daily Intelligence: Filter and view battle logs (expenses) by the specific day of the week.
+
+IST 12-Hour Clock: Accurate Indian Standard Time logging using pytz.
+
+🛠️ Tech Stack
+Frontend: Streamlit
+
+Database & Auth: Supabase (PostgreSQL)
+
+Data Handling: Pandas
+
+Timezone Management: Pytz
