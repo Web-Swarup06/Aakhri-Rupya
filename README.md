@@ -15,11 +15,11 @@ Pocket Survival is a gamified personal finance tracker built with Streamlit and 
 - Timezone Management: Pytz
 
 # 🚀 Deployment & Setup
-1. Prerequisites
+## 1. Prerequisites
 - Python 3.8+
 - A free Supabase account.
 
-2. Database Configuration
+## 2. Database Configuration
 Run the following SQL in your Supabase SQL Editor to initialize the database:
 CREATE TABLE expenses (
   id SERIAL PRIMARY KEY,
@@ -30,7 +30,7 @@ CREATE TABLE expenses (
   timestamp TEXT
 );
 
-3. Local Installation
+## 3. Local Installation
 - Clone the repository:
    git clone https://github.com/yourusername/pocket-survival.git
    cd pocket-survival
