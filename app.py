@@ -18,7 +18,7 @@ def get_supabase():
 
 supabase = get_supabase()
 
-# --- 3. UPDATED AUTHENTICATION ---
+# --- 3. FIXED AUTHENTICATION (No Double Messages) ---
 if "user" not in st.session_state:
     st.session_state.user = None
 
@@ -30,16 +30,15 @@ def login_ui():
         e = st.text_input("Email", key="l_email")
         p = st.text_input("Password", type="password", key="l_pw")
         if st.button("Enter Game"):
-            # Use a placeholder to prevent "Double Messages"
-            msg = st.empty() 
+            msg_slot = st.empty() # Placeholder to ensure only ONE message shows
             try:
                 res = supabase.auth.sign_in_with_password({"email": e, "password": p})
                 if res.user:
                     st.session_state.user = res.user
-                    msg.success("Identity Verified! Entering...")
-                    st.rerun() # Clean jump to main app
+                    msg_slot.success("Identity Verified! Loading...")
+                    st.rerun()
             except:
-                msg.error("Invalid Credentials.")
+                msg_slot.error("Invalid Credentials.")
 
     with tab2:
         ne = st.text_input("New Email", key="r_email")
@@ -47,7 +46,7 @@ def login_ui():
         if st.button("Register"):
             try:
                 supabase.auth.sign_up({"email": ne, "password": np})
-                st.success("Account Created! You can now Login.")
+                st.success("Player Created! Switch to Login tab.")
             except Exception as err:
                 st.error(f"Error: {err}")
 
@@ -59,37 +58,34 @@ else:
     now = datetime.now(IST)
     current_month_str = now.strftime("%m-%Y") 
 
-    # --- SIDEBAR HUD ---
     with st.sidebar:
         st.write(f"Logged in as: **{st.session_state.user.email}**")
-        
-        # Adding a 'key' helps Streamlit remember this value during the session
-        budget = st.number_input("Monthly HP (Budget ₹)", value=1000, key="monthly_budget_input")
+        # Budget with a key to prevent resetting
+        budget = st.number_input("Monthly HP (Budget ₹)", value=1000, key="budget_val")
         
         if st.button("Logout"):
             supabase.auth.sign_out()
             st.session_state.user = None
             st.rerun()
 
-    # --- THE REST OF YOUR FETCH & MATH CODE REMAINS THE SAME ---
-
     # Fetch Data
     res = supabase.table("expenses").select("*").eq("user_id", u_id).execute()
     all_df = pd.DataFrame(res.data)
 
     if not all_df.empty:
+        # Create month filter column
         all_df['month_check'] = all_df['timestamp'].apply(lambda x: x[5:7] + "-" + x[0:4])
         month_df = all_df[all_df['month_check'] == current_month_str]
     else:
         month_df = pd.DataFrame()
 
-    # Math
+    # HP Math
     total_spent = month_df['amount'].sum() if not month_df.empty else 0
     current_hp = max(0, budget - total_spent)
     overspent = max(0, total_spent - budget)
     hp_percent = int((current_hp / budget) * 100) if budget > 0 else 0
 
-    # UI
+    # --- 5. HUD DISPLAY ---
     st.title(f"🕹️ Battle Station: {now.strftime('%B %Y')}")
     c1, c2 = st.columns(2)
     c1.metric("Wallet HP", f"₹{current_hp:,.2f}")
@@ -102,6 +98,7 @@ else:
     st.progress(hp_percent / 100)
     st.divider()
 
+    # Input Damage
     with st.form("log_damage", clear_on_submit=True):
         c_item, c_amt = st.columns([3, 1])
         item_in = c_item.text_input("Item Name")
@@ -115,5 +112,29 @@ else:
                 }).execute()
                 st.rerun()
 
-    if not month_df.empty:
-        st.dataframe(month_df[['timestamp', 'item', 'amount']].sort_values(by='timestamp', ascending=False), use_container_width=True, hide_index=True)
+    # --- 6. YOUR IMPROVED INTELLIGENCE REPORT ---
+    st.title("📅 Intelligence Report")
+    
+    if month_df.empty:
+        st.info("No logs found for this month.")
+    else:
+        # Grouping by day for selection
+        existing_days = month_df['day_name'].unique()
+        selected_day = st.sidebar.selectbox("Filter by Day", existing_days)
+        
+        filtered_df = month_df[month_df['day_name'] == selected_day]
+        
+        st.subheader(f"History for {selected_day}")
+        
+        for _, row in filtered_df.iterrows():
+            with st.container():
+                col_left, col_right = st.columns([3, 1])
+                # Extracting time from '2026-01-10 10:30 PM' -> '10:30 PM'
+                time_val = row['timestamp'].split(' ', 1)[1]
+                
+                col_left.markdown(f"**{row['item']}** \n\n <small>{time_val}</small>", unsafe_allow_html=True)
+                col_right.markdown(f"### -₹{row['amount']}")
+                st.divider()
+        
+        day_total = filtered_df['amount'].sum()
+        st.info(f"Total damage on {selected_day}: ₹{day_total:,.2f}")
