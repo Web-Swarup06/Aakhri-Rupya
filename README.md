@@ -20,24 +20,27 @@ Pocket Survival is a gamified personal finance tracker built with Streamlit and 
 - A free Supabase account.
 
 ## 2. Database Configuration
-Run the following SQL in your Supabase SQL Editor to initialize the database:
-CREATE TABLE expenses (
-  id SERIAL PRIMARY KEY,
-  user_id UUID REFERENCES auth.users NOT NULL,
-  item TEXT,
-  amount FLOAT,
-  day_name TEXT,
-  timestamp TEXT
-);
+`CREATE TABLE expenses (`  
+  `id SERIAL PRIMARY KEY,`  
+  `user_id UUID REFERENCES auth.users NOT NULL,`  
+  `item TEXT,`  
+  `amount FLOAT,`  
+  `day_name TEXT,`  
+  `timestamp TEXT`  
+`);`  
+Enable Privacy (RLS)  
+`ALTER TABLE expenses ENABLE ROW LEVEL SECURITY;`  
+`CREATE POLICY "Users can only access their own expenses"`  
+`ON expenses FOR ALL USING (auth.uid() = user_id);`
 
 ## 3. Local Installation
-- Clone the repository:
-   git clone https://github.com/yourusername/pocket-survival.git
+- Clone the repository:  
+   git clone https://github.com/yourusername/pocket-survival.git  
    cd pocket-survival
 - Install dependencies:
-   pip install -r requirements.txt
-- Setup Secrets: Create a .streamlit/secrets.toml file and add your Supabase credentials:
-   SUPABASE_URL = "https://your-project.supabase.co"
+   pip install -r requirements.txt  
+- Setup Secrets: Create a `.streamlit/secrets.toml` file and add your Supabase credentials:  
+   SUPABASE_URL = "https://your-project.supabase.co"  
    SUPABASE_KEY = "your-anon-key"
 - Run the app:
    streamlit run app.py
