@@ -18,25 +18,28 @@ def get_supabase():
 
 supabase = get_supabase()
 
-# --- 3. AUTHENTICATION ---
+# --- 3. UPDATED AUTHENTICATION ---
 if "user" not in st.session_state:
     st.session_state.user = None
 
 def login_ui():
     st.title("🛡️ Survival Login")
     tab1, tab2 = st.tabs(["Login", "Create Player"])
+    
     with tab1:
         e = st.text_input("Email", key="l_email")
         p = st.text_input("Password", type="password", key="l_pw")
         if st.button("Enter Game"):
+            # Use a placeholder to prevent "Double Messages"
+            msg = st.empty() 
             try:
                 res = supabase.auth.sign_in_with_password({"email": e, "password": p})
                 if res.user:
                     st.session_state.user = res.user
-                    st.success("Identity Verified! Loading Battle Station...")
-                    st.rerun() # This forces the immediate jump to the main app
-            except: 
-                st.error("Invalid Credentials.")
+                    msg.success("Identity Verified! Entering...")
+                    st.rerun() # Clean jump to main app
+            except:
+                msg.error("Invalid Credentials.")
 
     with tab2:
         ne = st.text_input("New Email", key="r_email")
@@ -44,7 +47,7 @@ def login_ui():
         if st.button("Register"):
             try:
                 supabase.auth.sign_up({"email": ne, "password": np})
-                st.success("Player Created! Switch to Login tab.")
+                st.success("Account Created! You can now Login.")
             except Exception as err:
                 st.error(f"Error: {err}")
 
@@ -56,15 +59,19 @@ else:
     now = datetime.now(IST)
     current_month_str = now.strftime("%m-%Y") 
 
+    # --- SIDEBAR HUD ---
     with st.sidebar:
         st.write(f"Logged in as: **{st.session_state.user.email}**")
-        # Back to an input box so you can change it, but default is 1000
-        budget = st.number_input("Monthly HP (Budget ₹)", value=1000)
+        
+        # Adding a 'key' helps Streamlit remember this value during the session
+        budget = st.number_input("Monthly HP (Budget ₹)", value=1000, key="monthly_budget_input")
         
         if st.button("Logout"):
             supabase.auth.sign_out()
             st.session_state.user = None
             st.rerun()
+
+    # --- THE REST OF YOUR FETCH & MATH CODE REMAINS THE SAME ---
 
     # Fetch Data
     res = supabase.table("expenses").select("*").eq("user_id", u_id).execute()
